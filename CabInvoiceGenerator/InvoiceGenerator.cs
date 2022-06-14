@@ -8,15 +8,22 @@ namespace CabInvoiceGenerator
 {
     public class InvoiceSummary
     {
-        private int numberOfRides;
-        private double totalFare;
-        private double averageFare;
-
+        public int numberOfRides;
+        public double totalFare;
+        public double averageFare;
         public InvoiceSummary(int numberOfRides, double totalFare)
         {
             this.numberOfRides = numberOfRides;
             this.totalFare = totalFare;
             this.averageFare = this.totalFare / this.numberOfRides;
+            Console.WriteLine(" avg fair : " + this.averageFare);
+        }
+        public InvoiceSummary(int numberOfRides, double totalFare,double averageFare)
+        {
+            this.numberOfRides = numberOfRides;
+            this.totalFare = totalFare;
+            this.averageFare = this.totalFare / this.numberOfRides;
+            Console.WriteLine(" avg fair : " + this.averageFare);
         }
 
     }
@@ -68,6 +75,7 @@ namespace CabInvoiceGenerator
             try
             {
                 totalFare = distance * MINIMUM_COST_PER_KM + time * COST_PER_TIME;
+                Console.WriteLine(" Distance : " + distance + " Time : " + time);
             }
             catch (CustomException)
             {
@@ -108,6 +116,7 @@ namespace CabInvoiceGenerator
                 }
 
             }
+            Console.WriteLine(" no of rides : " + rides.Length);
             return new InvoiceSummary(rides.Length, totalFare);
         }
 

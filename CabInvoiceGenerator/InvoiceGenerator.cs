@@ -6,54 +6,19 @@ using System.Threading.Tasks;
 
 namespace CabInvoiceGenerator
 {
-    public class InvoiceSummary
-    {
-        public int numberOfRides;
-        public double totalFare;
-        public double averageFare;
-        public InvoiceSummary(int numberOfRides, double totalFare)
-        {
-            this.numberOfRides = numberOfRides;
-            this.totalFare = totalFare;
-            this.averageFare = this.totalFare / this.numberOfRides;
-            Console.WriteLine(" avg fair : " + this.averageFare);
-        }
-        public InvoiceSummary(int numberOfRides, double totalFare,double averageFare)
-        {
-            this.numberOfRides = numberOfRides;
-            this.totalFare = totalFare;
-            this.averageFare = this.totalFare / this.numberOfRides;
-            Console.WriteLine(" avg fair : " + this.averageFare);
-        }
-
-    }
-    public class Ride
-    {
-        // variables used
-        public double distance;
-        public int time;
-
-        public Ride(double distance, int time)
-        {
-            this.distance = distance;
-            this.time = time;
-        }
-    }
     public class InvoiceGenerator
     {
-        public enum RideType
-        {
-            NORMAL
-        }
         private readonly double MINIMUM_COST_PER_KM;
-        private readonly int COST_PER_TIME;
+        private readonly double COST_PER_TIME;
         private readonly double MINIMUM_FARE;
 
         RideType rideType;
+        private RideRepository rideRepository;
+
         public InvoiceGenerator(RideType rideType)
         {
             this.rideType = rideType;
-            
+            this.rideRepository = new RideRepository();
             try
             {
                 if (rideType.Equals(RideType.NORMAL))
@@ -69,13 +34,12 @@ namespace CabInvoiceGenerator
             }
         }
 
-        public double CalculateFare(double distance, int time)
+        public double CalculateFare(double distance, double time)
         {
-            double totalFare = 0;
+            double totalFare = 0.0;
             try
             {
-                totalFare = distance * MINIMUM_COST_PER_KM + time * COST_PER_TIME;
-                Console.WriteLine(" Distance : " + distance + " Time : " + time);
+                totalFare = (distance * MINIMUM_COST_PER_KM) + (time * COST_PER_TIME);
             }
             catch (CustomException)
             {
@@ -93,20 +57,48 @@ namespace CabInvoiceGenerator
 
                 }
             }
-            return Math.Max(totalFare, MINIMUM_FARE);
+            double maxFare = Math.Max(totalFare, MINIMUM_FARE);
+            Console.Write(" + " + maxFare);
+            return maxFare;
+        }
+        public void AddRides(string userId, Ride[] rides)
+        {
+            try
+            {
+                rideRepository.AddRide(userId, rides);
+            }
+            catch (CustomException)
+            {
+                if (rides == null)
+                {
+                    throw new CustomException(CustomException.ExceptionType.NULL_RIDES, "Rides are Null");
+                }
+            }
         }
 
-
+        public InvoiceSummary GetInvoiceSummary(String userId)
+        {
+            try
+            {
+                return this.CalculateFare(rideRepository.GetRides(userId));
+                //returns array & provided to calculatefare
+            }
+            catch (CustomException)
+            {
+                throw new CustomException(CustomException.ExceptionType.INVALID_USER_ID, "Invalid user id");
+            }
+        }
         public InvoiceSummary CalculateFare(Ride[] rides)
         {
-            double totalFare = 0;
+            double totalFare = 0.0;
+            Console.Write("\nCalculating total fare : ");
             try
             {
                 foreach (Ride ride in rides)
                 {
-                    totalFare += this.CalculateFare(ride.distance, ride.time);
-
+                    totalFare = totalFare + this.CalculateFare(ride.distance, ride.time);
                 }
+                Console.WriteLine("\n Total fare : " + totalFare);
             }
             catch (CustomException)
             {
@@ -114,9 +106,8 @@ namespace CabInvoiceGenerator
                 {
                     throw new CustomException(CustomException.ExceptionType.NULL_RIDES, "Rides are null");
                 }
-
             }
-            Console.WriteLine(" no of rides : " + rides.Length);
+            Console.WriteLine(" Num of rides : " + rides.Length);
             return new InvoiceSummary(rides.Length, totalFare);
         }
 
